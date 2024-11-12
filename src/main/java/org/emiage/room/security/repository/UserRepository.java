@@ -14,7 +14,7 @@ import org.emiage.room.security.entity.User;
  * @author linda
  */
 public class UserRepository {
-    @PersistenceContext(unitName = "rooms_jpa")
+    @PersistenceContext
     EntityManager em;
 
     public List getAllUsers() {

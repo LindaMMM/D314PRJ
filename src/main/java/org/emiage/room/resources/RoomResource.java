@@ -52,6 +52,7 @@ public class RoomResource {
     @GET
     @Path("{id}")
     @Produces("application/json")
+    @TokenAuthenticated
     public Room findRoom(@PathParam("id") Long id) {
         logger.log(Level.INFO, "Getting Room by id {0}", id);
         return roomRepository.findById(id)
@@ -59,6 +60,7 @@ public class RoomResource {
     }
     
     @GET
+    @TokenAuthenticated
     @Produces("application/json")
     public List<Room> findAll() {
         logger.info("Getting all room");
@@ -66,11 +68,14 @@ public class RoomResource {
     }
     
     @POST
+    @TokenAuthenticated
     @Consumes("application/json")
     @Produces("application/json")
     public Room create(Room room) {
         logger.log(Level.INFO, "Creating room {0}", room.getName());
         try{
+            /* Maj Du createur de la salle*/
+            room.setUserCreate(securityctx.getUserPrincipal().getName());
             return roomRepository.create(room);
         }catch (PersistenceException ex){
             logger.log(Level.INFO, "Error creating room {0}", room.getName());
@@ -80,6 +85,7 @@ public class RoomResource {
 
     @DELETE
     @Path("{id}")
+    @TokenAuthenticated
     public void delete(@PathParam("id") Long id) {
         logger.log(Level.INFO, "Deleting room by id {0}", id);
         try{
@@ -94,9 +100,12 @@ public class RoomResource {
     @PUT
     @Consumes("application/json")
     @Produces("application/json")
+    @TokenAuthenticated
     public Room update(Room room) {
         logger.log(Level.INFO, "Updating room {0}", room.getName());
         try{
+            /* Maj de l'utilisateur de création*/
+            room.setUserUpdate(securityctx.getUserPrincipal().getName());
             return roomRepository.create(room);
         }catch (PersistenceException ex){
             logger.log(Level.INFO, "Error updating room {0}", room.getName());

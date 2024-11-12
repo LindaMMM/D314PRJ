@@ -30,7 +30,7 @@ import org.emiage.room.security.entity.User;
 @Stateful
 public class RequestBean {
 
-    @PersistenceContext(unitName = "rooms_jpa")
+    @PersistenceContext
     private EntityManager em;
 
     private static final Logger logger = Logger.getLogger("org.emiage.room.configuration.RequestBean");

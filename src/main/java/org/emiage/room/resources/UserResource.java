@@ -18,7 +18,7 @@ import jakarta.ws.rs.core.UriInfo;
 import java.util.HashSet;
 import java.util.Set;
 import org.emiage.room.configuration.RoomConfig;
-import org.emiage.room.security.entity.DTOLogin;
+import org.emiage.room.model.DTO.DTOLogin;
 import org.emiage.room.security.entity.User;
 import org.emiage.room.security.entity.UserJWT;
 import org.emiage.room.security.repository.UserRepository;

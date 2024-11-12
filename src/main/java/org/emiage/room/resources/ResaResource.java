@@ -41,11 +41,21 @@ public class ResaResource {
     @Inject
     private ResaRepository resaRepository;
     
-    // @TokenAuthenticated
+    
+    @GET
+    @Path("myresa")
+    @Produces("application/json")
+    @TokenAuthenticated
+    public List<Resa> findMeResa() {
+        logger.info("Getting all mu re");
+        return resaRepository.findbyuser(securityctx.getUserPrincipal().getName());
+    }
+    
     
     @GET
     @Path("{id}")
     @Produces("application/json")
+    @TokenAuthenticated
     public Resa findResa(@PathParam("id") Long id) {
         logger.log(Level.INFO, "Getting Resa by id {0}", id);
         return resaRepository.findById(id)
@@ -54,17 +64,21 @@ public class ResaResource {
     
     @GET
     @Produces("application/json")
+    @TokenAuthenticated
     public List<Resa> findAll() {
         logger.info("Getting all resa");
         return resaRepository.findAll();
     }
     
     @POST
+    @TokenAuthenticated
     @Consumes("application/json")
     @Produces("application/json")
     public Resa create(Resa resa) {
         logger.log(Level.INFO, "Creating resa {0}", resa.getSubject());
         try{
+            /* Maj de l'utilisateur de création*/
+            resa.setUserCreate(securityctx.getUserPrincipal().getName());
             return resaRepository.create(resa);
         }catch (PersistenceException ex){
             logger.log(Level.INFO, "Error creating resa {0}", resa.getSubject());
@@ -74,6 +88,7 @@ public class ResaResource {
 
     @DELETE
     @Path("{id}")
+    @TokenAuthenticated
     public void delete(@PathParam("id") Long id) {
         logger.log(Level.INFO, "Deleting resa by id {0}", id);
         try{
@@ -88,9 +103,12 @@ public class ResaResource {
     @PUT
     @Consumes("application/json")
     @Produces("application/json")
+    @TokenAuthenticated
     public Resa update(Resa resa) {
         logger.log(Level.INFO, "Updating resa {0}", resa.getSubject());
         try{
+            /* Maj de l'utilisateur de création*/
+            resa.setUserUpdate(securityctx.getUserPrincipal().getName());
             return resaRepository.create(resa);
         }catch (PersistenceException ex){
             logger.log(Level.INFO, "Error updating resa {0}", resa.getSubject());

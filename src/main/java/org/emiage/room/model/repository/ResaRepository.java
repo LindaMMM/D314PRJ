@@ -51,5 +51,12 @@ public class ResaRepository {
         logger.log(Level.INFO, "Updating resa {0}", resa.getSubject());
         return em.merge(resa);
     }
+    
+    public List<Resa> findbyuser(String name){
+        logger.info("Getting all resa");
+        return em.createQuery("SELECT r FROM Resa r, User u where u.id_user=r.user and u.username=:valname  ", Resa.class)
+                .setParameter("valname", name)
+                .getResultList();
+    }
 
 }

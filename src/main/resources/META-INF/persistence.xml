@@ -18,4 +18,28 @@
       <!--property name="jakarta.persistence.sql-load-script-source" value="main/resources/loadtable.sql"/-->
     </properties>
   </persistence-unit>
+  <!--persistence-unit name="data_room" transaction-type="JTA">
+    
+     <provider>org.hibernate.ejb.HibernatePersistence</provider>
+    <class>org.emiage.room.configuration.RequestBean</class>
+    <class>org.emiage.room.model.entity.Room</class>
+    <class>org.emiage.room.model.entity.Audit</class>
+    <class>org.emiage.room.model.entity.Resa</class>
+    <class>org.emiage.room.security.entity.Role</class>
+    <class>org.emiage.room.security.entity.User</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    <properties>
+      
+
+      <property name="dialect" value="org.hibernate.dialect.SQLiteDialect" />
+            <property name="javax.persistence.jdbc.driver" value="org.sqlite.JDBC" />
+            <property name="javax.persistence.jdbc.url" value="jdbc:sqlite:DataRooms.db" />
+            <property name="javax.persistence.jdbc.user" value="" />
+            <property name="javax.persistence.jdbc.password" value="" />
+            <property name="hibernate.show_sql" value="true" />
+            <property name="format_sql" value="true" />
+            <property name="hibernate.connection.charSet" value="UTF-8" />
+            <property name="hibernate.hbm2ddl.auto" value="create" />
+    </properties>
+  </persistence-unit-->
 </persistence>
