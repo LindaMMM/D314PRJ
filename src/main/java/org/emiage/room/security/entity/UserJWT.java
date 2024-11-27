@@ -38,6 +38,7 @@ public class UserJWT {
     private static final String ISSUER = "wsroom";
     private static final String ROLES = "roles";
     private static final String IDUSER = "user_id";
+    private static final String USERNAME = "user_name";
     private static final int DURATION = 300;
 
     private final String user;
@@ -68,6 +69,7 @@ public class UserJWT {
         Algorithm algorithm = Algorithm.HMAC256(roomConfig.getClientSecret());
         return JWT.create()
                 .withClaim(IDUSER, user.getId())
+                .withClaim(USERNAME, user.getUsername())
                 .withJWTId(user.getUsername())
                 .withIssuer(ISSUER)
                 .withExpiresAt(Date.from(expire.atZone(ZoneOffset.UTC).toInstant()))
@@ -81,7 +83,16 @@ public class UserJWT {
             JWTVerifier verifier = JWT.require(algorithm).withIssuer(ISSUER).build();
             final DecodedJWT jwt = verifier.verify(jwtText);
             final Claim roles = jwt.getClaim(ROLES);
-            return Optional.of(new UserJWT(jwt.getId(),
+            final Claim id = jwt.getClaim(IDUSER);
+            final Claim name = jwt.getClaim(USERNAME);
+            
+            LOGGER.log(Level.INFO, "User id {0}", id);
+            LOGGER.log(Level.INFO, "Roles id {0}", roles);
+            LOGGER.log(Level.INFO, "Roles id {0}", name);
+            LOGGER.log(Level.INFO, "User Name {0}", jwt.getId());
+            
+            
+            return Optional.of(new UserJWT( name.asString(),
                     roles.asList(String.class).stream().collect(Collectors.toUnmodifiableSet())));
         } catch (JWTVerificationException exp) {
             LOGGER.log(Level.WARNING, "There is an error to load the JWT token", exp);

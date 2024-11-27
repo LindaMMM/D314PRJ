@@ -5,6 +5,11 @@ import com.auth0.jwt.interfaces.Header;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.PersistenceException;
+import jakarta.transaction.HeuristicMixedException;
+import jakarta.transaction.HeuristicRollbackException;
+import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.SystemException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -20,6 +25,8 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.emiage.room.model.DTO.DTOReturn;
+import org.emiage.room.model.DTO.DTOReturnLogin;
 import org.emiage.room.model.entity.Room;
 import org.emiage.room.model.repository.RoomRepository;
 import org.emiage.room.security.jwtfilter.TokenAuthenticated;
@@ -71,14 +78,19 @@ public class RoomResource {
     @TokenAuthenticated
     @Consumes("application/json")
     @Produces("application/json")
-    public Room create(Room room) {
+    public Response create(Room room) throws SystemException {
         logger.log(Level.INFO, "Creating room {0}", room.getName());
         try{
-            /* Maj Du createur de la salle*/
             room.setUserCreate(securityctx.getUserPrincipal().getName());
-            return roomRepository.create(room);
+            room.setUserUpdate(securityctx.getUserPrincipal().getName());
+            roomRepository.create(room);
+            return Response
+                   .ok()
+                   .entity(new DTOReturn(0, "Salle creer"))
+                   .build();
         }catch (PersistenceException ex){
             logger.log(Level.INFO, "Error creating room {0}", room.getName());
+            logger.log(Level.SEVERE, "Exception {0}", ex.toString());
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
     }
@@ -86,13 +98,24 @@ public class RoomResource {
     @DELETE
     @Path("{id}")
     @TokenAuthenticated
-    public void delete(@PathParam("id") Long id) {
+    public Response delete(@PathParam("id") Long id){
         logger.log(Level.INFO, "Deleting room by id {0}", id);
         try{
             roomRepository.delete(id);
+            return Response
+                   .ok()
+                   .entity(new DTOReturn(0, "Salle supprimer"))
+                   .build();
         }catch (IllegalArgumentException e){
             logger.log(Level.INFO, "Error deleting room by id {0}", id);
             throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+        catch (SystemException e){
+            logger.log(Level.INFO, "Error deleting room by id {0}", id);
+            return Response
+                   .ok()
+                   .entity(new DTOReturn(-1, "Erreur {0}".formatted(e.getMessage())))
+                   .build();
         }
     }
 
@@ -106,10 +129,23 @@ public class RoomResource {
         try{
             /* Maj de l'utilisateur de création*/
             room.setUserUpdate(securityctx.getUserPrincipal().getName());
-            return roomRepository.create(room);
+            return roomRepository.update(room);
         }catch (PersistenceException ex){
             logger.log(Level.INFO, "Error updating room {0}", room.getName());
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        } catch (SecurityException ex) {
+            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NotSupportedException ex) {
+            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SystemException ex) {
+            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RollbackException ex) {
+            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (HeuristicMixedException ex) {
+            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (HeuristicRollbackException ex) {
+            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return null;
     }
 }

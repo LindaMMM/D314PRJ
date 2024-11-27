@@ -4,8 +4,15 @@
  */
 package org.emiage.room.model.repository;
 
+import jakarta.annotation.Resource;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.HeuristicMixedException;
+import jakarta.transaction.HeuristicRollbackException;
+import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.UserTransaction;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Optional;
@@ -23,10 +30,23 @@ public class RoomRepository {
 
     @PersistenceContext
     private EntityManager em;
-
-    public Room create(Room room) {
-        logger.log(Level.INFO, "Creating room {0}", room.getName());
-        em.persist(room);
+    
+    @Resource
+    private UserTransaction utx;
+    
+    public Room create(Room room) throws SystemException {
+        
+        try {
+            utx.begin();
+            em.persist(room);
+            utx.commit();
+            logger.log(Level.INFO, "Creating room {0}", room.toString());
+            return room;
+        }
+        catch (HeuristicMixedException | HeuristicRollbackException | NotSupportedException | RollbackException | SystemException | IllegalStateException | SecurityException e) {
+            logger.log(Level.SEVERE, "Error Creating room {0}", e);
+            utx.rollback();
+        }
         return room;
     }
 
@@ -40,15 +60,32 @@ public class RoomRepository {
         return Optional.ofNullable(em.find(Room.class, id));
     }
 
-    public void delete(Long id) {
+    public void delete(Long id) throws SystemException {
         logger.log(Level.INFO, "Deleting room by id {0}", id);
-        var room = findById(id)
+        try {
+            utx.begin();
+            var room = findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid room Id:" + id));
-        em.remove(room);
+            em.remove(room);
+            utx.commit();
+        }
+        catch (HeuristicMixedException | HeuristicRollbackException | NotSupportedException | RollbackException | SystemException | IllegalStateException | SecurityException e) {
+            logger.log(Level.SEVERE, "Error Updating room {0}", e);
+            utx.rollback();
+         }
     }
 
-    public Room update(Room room) {
-        logger.log(Level.INFO, "Updating room {0}", room.getName());
-        return em.merge(room);
+    public Room update(Room room) throws SecurityException, NotSupportedException, SystemException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
+         try {
+            utx.begin();
+            logger.log(Level.INFO, "Updating room {0}", room.getName());
+            room = em.merge(room);
+            utx.commit();
+         } 
+         catch ( SecurityException e) {
+            logger.log(Level.SEVERE, "Error Updating room {0}", e);
+            utx.rollback();
+         }
+         return room;
     }
 }

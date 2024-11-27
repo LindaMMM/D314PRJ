@@ -6,21 +6,19 @@ package org.emiage.room.resources;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.security.enterprise.credential.UsernamePasswordCredential;
+import jakarta.persistence.PersistenceException;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
-import java.util.HashSet;
-import java.util.Set;
-import org.emiage.room.configuration.RoomConfig;
-import org.emiage.room.model.DTO.DTOLogin;
+import jakarta.ws.rs.core.SecurityContext;
+import java.lang.invoke.MethodHandles;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.emiage.room.security.entity.User;
-import org.emiage.room.security.entity.UserJWT;
+import org.emiage.room.security.jwtfilter.TokenAuthenticated;
 import org.emiage.room.security.repository.UserRepository;
 
 /**
@@ -30,51 +28,26 @@ import org.emiage.room.security.repository.UserRepository;
 @Path("user")
 @RequestScoped
 public class UserResource {
-
+    
+    private static final Logger logger = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
+    
     @Inject
     UserRepository userRepository;
 
-    @Inject
-    RoomConfig roomConfig;
-
+    @Inject 
+    SecurityContext securityctx;
+      
     @GET
-    public Response ping() {
-        return Response
-                .ok("ping UserResource EE")
-                .build();
-    }
-
-    @Path("login")
-    @POST
-    public Response ping(DTOLogin user, @Context UriInfo uriInfo) {
-        try {
-            if (user != null) {
-                String name = user.getLogin();
-                String password = user.getPassword();
-                if ((name != null) && (password != null)) {
-                    // Recheche en base le login
-                    User usersearch = userRepository.findByLoging(name);
-                    // Vérification du login et mot de pass
-                    if (usersearch != null
-                            && usersearch.getPassword().equals(password)
-                            && usersearch.getUsername().equals(name)) {
-
-                        String token = UserJWT.createToken(usersearch, roomConfig);
-
-                        return Response.ok("Is connected  " + name)
-                                .header("Authorization", "Bearer " + token)
-                                .build();
-                    } else {
-                        return Response.status(Response.Status.UNAUTHORIZED).build();
-                    }
-                }
-            }
-
-        } catch (Exception er) {
-
+    @Produces("application/json")
+    @TokenAuthenticated
+    public User getuser() {
+        logger.log(Level.INFO, "Getting User by name {0}", securityctx.getUserPrincipal().getName());
+        try{
+            return userRepository.findByLoging(securityctx.getUserPrincipal().getName());
+          }catch (PersistenceException ex){
+            logger.log(Level.INFO, "Getting User by name {0}", securityctx.getUserPrincipal().getName());
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
-        return Response.status(Response.Status.UNAUTHORIZED).build();
-
     }
 
     @Path("list")

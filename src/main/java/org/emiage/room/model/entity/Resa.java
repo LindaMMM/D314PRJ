@@ -7,6 +7,7 @@ package org.emiage.room.model.entity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -48,13 +49,33 @@ public class Resa extends Audit {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateEnd;
     
-    @ManyToOne( cascade = CascadeType.PERSIST ) 
+  /*  @ManyToOne( cascade = CascadeType.ALL, fetch = FetchType.LAZY ) 
     @JoinColumn( name = "user_id", nullable = false )
     private User user;
     
-    @ManyToOne( cascade = CascadeType.PERSIST ) 
+    @ManyToOne( cascade = CascadeType.ALL, fetch = FetchType.LAZY) 
     @JoinColumn( name = "room_id", nullable = false )
-    private Room room;
+    private Room room;*/
+    
+    @Column(name = "user_id")
+    private long id_user;
+    public Long getIdUser() {
+        return id_user;
+    }
+
+    public void setIdUser(Long id) {
+        this.id_user = id;
+    }
+    
+    @Column(name = "room_id")
+    private long id_room;
+    public Long getIdRoom() {
+        return id_room;
+    }
+
+    public void setIdRoom(Long id) {
+        this.id_room = id;
+    }
     
     /*Geter/setter*/
      public Long getId() {
@@ -73,7 +94,7 @@ public class Resa extends Audit {
         this.name = name;
     }
     
-    public Room getRoom() {
+    /*public Room getRoom() {
         return room;
     }
 
@@ -88,7 +109,7 @@ public class Resa extends Audit {
     public void setUser(User user) {
         this.user = user;
     }
-   
+   */
     public Date getDateStart() {
         return dateStart;
     }
@@ -97,7 +118,7 @@ public class Resa extends Audit {
         this.dateStart = date;
     }
     
-    public Date getCapacity()
+    public Date getDateEnd()
     {
         return dateEnd;
     }

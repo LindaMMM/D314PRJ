@@ -26,9 +26,12 @@ import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
+import java.lang.invoke.MethodHandles;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -38,6 +41,8 @@ import java.util.Set;
 @TokenAuthenticated
 public class BearerTokenFilter implements ContainerRequestFilter {
 
+    private static final Logger logger = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
+    
     @Context
     ResourceInfo info;
 
@@ -72,6 +77,7 @@ public class BearerTokenFilter implements ContainerRequestFilter {
                 var userJWT = UserJWT.parse(token, roomConfig);
                 if (userJWT.isPresent()) {
                      final String subject = userJWT.get().getUser();
+                     logger.log(Level.INFO, "User du token {0}", subject);
                      final SecurityContext securityContext = requestContext.getSecurityContext();
             requestContext.setSecurityContext(new SecurityContext() {
                         @Override

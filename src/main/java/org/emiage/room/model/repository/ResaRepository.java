@@ -4,8 +4,15 @@
  */
 package org.emiage.room.model.repository;
 
+import jakarta.annotation.Resource;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.HeuristicMixedException;
+import jakarta.transaction.HeuristicRollbackException;
+import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.UserTransaction;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Optional;
@@ -23,10 +30,26 @@ public class ResaRepository {
 
     @PersistenceContext
     private EntityManager em;
+    
+    @Resource
+    private UserTransaction utx;
+    
 
-    public Resa create(Resa resa) {
-        logger.log(Level.INFO, "Creating Resa {0}", resa.getSubject());
-        em.persist(resa);
+    public Resa create(Resa resa) throws SystemException {
+        
+        logger.log(Level.INFO, "Creating Resa {0}", resa.toString());
+         try {
+            
+            utx.begin();
+            em.persist(resa);
+            utx.commit();
+            logger.log(Level.INFO, "Creating Resa {0}", resa.toString());
+        }
+        catch (HeuristicMixedException | HeuristicRollbackException | NotSupportedException | RollbackException | SystemException | IllegalStateException | SecurityException e) {
+            logger.log(Level.SEVERE, "Error Creating Resa {0}", e); 
+            utx.rollback();
+             
+        }
         return resa;
     }
 

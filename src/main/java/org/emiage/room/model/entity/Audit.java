@@ -71,6 +71,7 @@ public abstract class Audit implements Serializable {
     @PrePersist
     private void onCreate() {
         dateCreate = new Date();
+        dateUpdate = new Date();
     }
 
     @PreUpdate

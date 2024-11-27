@@ -60,28 +60,19 @@ public class User {
     @Column
     private String password;
 
-    @OneToMany(
-            targetEntity = org.emiage.room.model.entity.Resa.class,
-            mappedBy = "user",
-            cascade = {CascadeType.PERSIST, CascadeType.REMOVE}
-    )
-    private Set<Resa> resas;
-
+ 
     @ManyToMany(mappedBy = "users")
     private Set<Role> roles;
 
     // Constructeur
     public User() {
         this.roles = new HashSet<>();
-        this.resas = new HashSet<>();
     }
 
     public User(String name, String password) {
-        this.resas = new HashSet<>();
         this.roles = new HashSet<>();
         this.username = name;
         this.password = password;
-
     }
 
     /**
@@ -121,13 +112,6 @@ public class User {
         return roles;
     }
     
-    public void setResas(Set<Resa> resas) {
-        this.resas = resas;
-    }
-
-    public Set<Resa> getResas() {
-        return resas;
-    }
 
     @Override
     public int hashCode() {

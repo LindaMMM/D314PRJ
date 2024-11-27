@@ -41,12 +41,12 @@ public class Room extends Audit {
     
     protected String comment;
     
-    @OneToMany( 
+   /* @OneToMany( 
             targetEntity = Resa.class, 
             mappedBy = "room", 
             cascade = { CascadeType.PERSIST, CascadeType.REMOVE }
     )
-    private Set<Resa> resas;
+    private Set<Resa> resas;*/
     
     /*-----------Get/Set---------*/
      public Long getId() {
@@ -74,7 +74,7 @@ public class Room extends Audit {
         this.name = name;
     }
     
-    public void setResas(Set<Resa> resas)
+    /*public void setResas(Set<Resa> resas)
     {
         this.resas = resas;
     }
@@ -82,7 +82,7 @@ public class Room extends Audit {
     public Set<Resa> getResas()
     {
         return resas;
-    }
+    }*/
     
    /**
      * Get the value of Name
@@ -115,7 +115,7 @@ public class Room extends Audit {
      * Construteur de l'entité Room.
      */
     public Room(){
-        this.resas = new HashSet<>();
+        // this.resas = new HashSet<>();
     }
     
     /**
@@ -124,7 +124,7 @@ public class Room extends Audit {
      */
     public Room(String name)
     {
-        this.resas = new HashSet<>();
+        // this.resas = new HashSet<>();
         this.name = name;
     }
     
