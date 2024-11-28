@@ -8,30 +8,31 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.PersistenceException;
 import jakarta.transaction.SystemException;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.MatrixParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.emiage.room.model.DTO.DTOReturn;
+import org.emiage.room.model.dto.DTOAvailable;
+import org.emiage.room.model.dto.DTOAvailableDate;
+import org.emiage.room.model.dto.DTOReturn;
 import org.emiage.room.model.entity.Resa;
-import org.emiage.room.model.entity.Room;
-import org.emiage.room.model.repository.ResaRepository;
-import org.emiage.room.model.repository.RoomRepository;
-import org.emiage.room.security.entity.User;
+import org.emiage.room.model.service.ResaService;
+import org.emiage.room.model.service.RoomException;
 import org.emiage.room.security.jwtfilter.TokenAuthenticated;
-import org.emiage.room.security.repository.UserRepository;
 
 /**
  *
@@ -46,42 +47,7 @@ public class ResaResource {
     SecurityContext securityctx;
     
     @Inject
-    private ResaRepository resaRepository;
-    
-    @Inject
-    private UserRepository userRepository;
-    
-    @Inject
-    private RoomRepository roomRepository;
-    
-    
-    @GET
-    @Path("myresa")
-    @Produces("application/json")
-    @TokenAuthenticated
-    public List<Resa> findMeResa() {
-        logger.info("Getting all my resas");
-        return resaRepository.findbyuser(securityctx.getUserPrincipal().getName());
-    }
-    
-    
-    @GET
-    @Path("{id}")
-    @Produces("application/json")
-    @TokenAuthenticated
-    public Resa findResa(@PathParam("id") Long id) {
-        logger.log(Level.INFO, "Getting Resa by id {0}", id);
-        return resaRepository.findById(id)
-            .orElseThrow(() -> new WebApplicationException(Response.Status.NOT_FOUND));
-    }
-    
-    @GET
-    @Produces("application/json")
-    @TokenAuthenticated
-    public List<Resa> findAll() {
-        logger.info("Getting all resa");
-        return resaRepository.findAll();
-    }
+    ResaService resaService;
     
     @POST
     @TokenAuthenticated
@@ -89,53 +55,49 @@ public class ResaResource {
     @Produces("application/json")
     public Response create(Resa resa){
         logger.log(Level.INFO, "Creating resa {0}", resa.getSubject());
+        String message="la réservation est crée";
         try{
-            /* Maj de l'utilisateur de création*/
-            resa.setUserCreate(securityctx.getUserPrincipal().getName());
-            resa.setUserUpdate(securityctx.getUserPrincipal().getName());
-            // Recherche du user
-            User user = userRepository.findByLoging(securityctx.getUserPrincipal().getName());
-            // Recherche de la salle
-            var room = roomRepository.findById(resa.getIdRoom());
-            if (room.isPresent())
-            {
-                resa.setIdUser(user.getId());
-                logger.log(Level.INFO, "Ready resa {0}", resa.toString());
-                resaRepository.create(resa);
-                return Response
-                   .ok()
-                   .entity(new DTOReturn(0, "Resrvation crée"))
-                   .build();
-            }
+            
+            resa = resaService.saveResa(resa, securityctx.getUserPrincipal().getName());
             return Response
                    .ok()
-                   .entity(new DTOReturn(-2, "La salle n'est pas connue"))
+                   .entity(new DTOReturn(0, message, resa))
                    .build();
             
         }catch (PersistenceException ex){
             logger.log(Level.INFO, "Error creating resa {0}", resa.getSubject());
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        } catch (SystemException ex) {
+            message = ex.getMessage();
+            
+        } catch (RoomException | SystemException ex) { 
              Logger.getLogger(ResaResource.class.getName()).log(Level.SEVERE, null, ex);
-         }
-        
-        return Response
+             message = ex.getMessage();
+         } 
+         return Response
                    .ok()
-                   .entity(new DTOReturn(-1, "Erreur dans la création de la réservation"))
+                   .entity(new DTOReturn(-1, message))
                    .build();
     }
 
     @DELETE
     @Path("{id}")
     @TokenAuthenticated
-    public void delete(@PathParam("id") Long id) {
+    public Response delete(@PathParam("id") Long id) {
         logger.log(Level.INFO, "Deleting resa by id {0}", id);
+        String message="la réservation est supprimée";
         try{
-            resaRepository.delete(id);
+            if (resaService.deleteResa(id))
+            return Response
+                   .ok()
+                   .entity(new DTOReturn(0, message))
+                   .build();
         }catch (IllegalArgumentException e){
             logger.log(Level.INFO, "Error deleting resa by id {0}", id);
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            message = e.getMessage();
         }
+        return Response
+                   .ok()
+                   .entity(new DTOReturn(-1, "La supression de la réservation n'a pas pu être fait." + message))
+                   .build();
     }
 
 
@@ -143,17 +105,78 @@ public class ResaResource {
     @Consumes("application/json")
     @Produces("application/json")
     @TokenAuthenticated
-    public Resa update(Resa resa) throws SystemException {
+    public Response update(Resa resa){
         logger.log(Level.INFO, "Updating resa {0}", resa.getSubject());
+        String message="la réservation est mise à jour";
         try{
             /* Maj de l'utilisateur de création*/
-            resa.setUserUpdate(securityctx.getUserPrincipal().getName());
-            return resaRepository.create(resa);
+            return Response
+                   .ok()
+                   .entity(new DTOReturn(0, message, resaService.saveResa(resa, securityctx.getUserPrincipal().getName())))
+                   .build();
+            
         }catch (PersistenceException ex){
             logger.log(Level.INFO, "Error updating resa {0}", resa.getSubject());
             logger.log(Level.INFO, "Error updating resa {0}", ex.getStackTrace());
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        }
+            message = ex.getMessage();
+        } catch (RoomException | SystemException ex) {
+             Logger.getLogger(ResaResource.class.getName()).log(Level.SEVERE, null, ex);
+             message = ex.getMessage();
+         }
+         return Response
+                   .ok()
+                   .entity(new DTOReturn(-1, "La mise à jour de la réservation n'est pas possible." + message))
+                   .build();
     }
     
+    @GET
+    @Path("{id}")
+    @Produces("application/json")
+    @TokenAuthenticated
+    public Resa findResa(@PathParam("id") Long id) {
+        logger.log(Level.INFO, "Getting Resa by id {0}", id);
+        return resaService.findResaById(id);
+    }
+    
+    @GET
+    @Produces("application/json")
+    @TokenAuthenticated
+    public List<Resa> findAll() {
+        logger.info("Getting all resa");
+        return resaService.findAll();
+    }
+    
+    @GET
+    @Path("me")
+    @Produces("application/json")
+    @Consumes("application/json")
+    @TokenAuthenticated
+    public List<Resa> findMeResa() {
+        logger.info("Getting all my resas");
+        return resaService.getAllMyResa(securityctx.getUserPrincipal().getName());
+    }
+    
+    @POST
+    @Path("available")
+    @Produces("application/json")
+    @Consumes("application/json")
+    @TokenAuthenticated
+    public DTOAvailable searchAvailable(DTOAvailable dto ){
+        logger.log(Level.INFO, "Recherche des disponibiltés d'une salle - {0}".formatted(dto.getIdroom()), dto.getIdroom());
+        for (DTOAvailableDate i : dto.getLstDate()) {
+             logger.log(Level.INFO, "Recherche des disponibiltés d'une salle{0}", i.toString());
+        }
+        return resaService.searchAvailable(dto);
+        
+    }
+        
+    @GET
+    @Path("busyroom/{id}")
+    @Consumes("application/json")
+    @Produces("application/json")
+    @TokenAuthenticated
+    public List<Resa> searchBusyByRoomId(@PathParam("id") Long idroom){
+        logger.log(Level.INFO, "Recherche des resa d'une salle", idroom);
+        return resaService.findbyRoomId(idroom);
+    }
 }

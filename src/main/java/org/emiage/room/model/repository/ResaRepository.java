@@ -13,7 +13,9 @@ import jakarta.transaction.NotSupportedException;
 import jakarta.transaction.RollbackException;
 import jakarta.transaction.SystemException;
 import jakarta.transaction.UserTransaction;
+import jakarta.ws.rs.PathParam;
 import java.lang.invoke.MethodHandles;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -35,7 +37,7 @@ public class ResaRepository {
     private UserTransaction utx;
     
 
-    public Resa create(Resa resa) throws SystemException {
+    public Resa create(Resa resa) throws SystemException, SystemException {
         
         logger.log(Level.INFO, "Creating Resa {0}", resa.toString());
          try {
@@ -63,23 +65,111 @@ public class ResaRepository {
         return Optional.ofNullable(em.find(Resa.class, id));
     }
 
-    public void delete(Long id) {
+     public void deletebyroom(Long id) {
+        logger.log(Level.INFO, "Deleting resa by idRoom {0}", id);
+        try {
+            utx.begin();
+            em.createQuery("DELETE FROM Resa r where r.id_room =: id", Resa.class).setParameter("id", id).executeUpdate();
+            utx.commit();
+        }
+        catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException | SystemException | NotSupportedException ex) {
+          Logger.getLogger(ResaRepository.class.getName()).log(Level.SEVERE, null, ex);
+          try {
+              utx.rollback();
+          } catch (IllegalStateException | SecurityException | SystemException ex1) {
+              Logger.getLogger(ResaRepository.class.getName()).log(Level.SEVERE, null, ex1);
+          }
+        
+        }
+        
+     }
+     
+    public boolean delete(Long id) {
         logger.log(Level.INFO, "Deleting resa by id {0}", id);
         var resa = findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid resa Id:" + id));
-        em.remove(resa);
+        try {
+            utx.begin();
+            em.remove(resa);
+            utx.commit();
+        } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException | SystemException | NotSupportedException ex) {
+            Logger.getLogger(ResaRepository.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                utx.rollback();
+            } catch (IllegalStateException | SecurityException | SystemException ex1) {
+                Logger.getLogger(ResaRepository.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+            return false;
+        }
+        return true;
+        
     }
 
     public Resa update(Resa resa) {
         logger.log(Level.INFO, "Updating resa {0}", resa.getSubject());
-        return em.merge(resa);
+        try {
+            utx.begin();
+            resa = em.merge(resa);
+            utx.commit();
+        } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException | SystemException | NotSupportedException ex) {
+            Logger.getLogger(ResaRepository.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                utx.rollback();
+            } catch (IllegalStateException | SecurityException | SystemException ex1) {
+                Logger.getLogger(ResaRepository.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+            return null;
+        }
+        return resa;
     }
     
     public List<Resa> findbyuser(String name){
         logger.info("Getting all resa");
-        return em.createQuery("SELECT r FROM Resa r, User u where u.id_user=r.user and u.username=:valname  ", Resa.class)
+        return em.createQuery("SELECT r FROM Resa r, User u where u.id_user=r.id_user and u.username=:valname  ", Resa.class)
                 .setParameter("valname", name)
                 .getResultList();
     }
-
+    
+    public List<Resa> findbyRoomId(Long idroom, Date dtstart){
+        logger.info("Getting all resa");
+        return em.createQuery("SELECT r FROM Resa r where r.id_room = :id and r.dateStart>:dtstart ", Resa.class)
+                .setParameter("id", idroom)
+                .setParameter("dtstart", dtstart)
+                .getResultList();
+    }
+    
+    public boolean availableRoom(Resa resaOrigin){
+       logger.info("Recherche de la disponibilité d'une salle");
+       
+       List<Resa> lst = this.availableRoomList(resaOrigin.getIdRoom(), resaOrigin.getDateStart(), resaOrigin.getDateEnd());
+       
+       if(lst.isEmpty())
+           return true;
+       
+       if((lst.contains(resaOrigin)) && (lst.size() == 1 ))
+       {
+           return true;
+       }
+       return false;
+    }
+    
+    public boolean availableRoom(Long idroom, Date dtstart, Date dtend ){
+        List<Resa> lst = this.availableRoomList(idroom, dtstart, dtend);
+       
+        if(lst.isEmpty())
+           return true; 
+       
+       return false;
+    }
+    
+    private List<Resa> availableRoomList(Long idroom, Date dtstart, Date dtend ) {
+         List<Resa> lst = em.createQuery("SELECT r FROM Resa r where r.id_room=:id_room and (r.dateCreate between :dtstart and :dtend or r.dateEnd between :dtstart and :dtend )", Resa.class)
+                .setParameter("id_room", idroom)
+                .setParameter("dtstart", dtstart)
+                .setParameter("dtend", dtend)
+                .getResultList();
+         return lst;
+    }
+    
+  
 }

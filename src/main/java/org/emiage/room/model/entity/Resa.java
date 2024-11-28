@@ -68,7 +68,7 @@ public class Resa extends Audit {
     }
     
     @Column(name = "room_id")
-    private long id_room;
+    private Long id_room;
     public Long getIdRoom() {
         return id_room;
     }
@@ -138,12 +138,19 @@ public class Resa extends Audit {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Room)) {
+        
+        if (object == this)
+            return true;
+        
+        if (!(object instanceof Resa)) {
             return false;
         }
+        
         Resa other = (Resa) object;
-        if ((this.id_resa == null && other.id_resa != null) || (this.id_resa != null && !this.id_resa.equals(other.id_resa))) {
+        if ((this.id_resa == null && other.id_resa != null) 
+                || (this.id_resa != null && !this.id_resa.equals(other.id_resa))
+                || (this.id_room != null && !this.id_room.equals(other.id_room))
+                ) {
             return false;
         }
         return true;

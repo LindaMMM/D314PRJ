@@ -25,10 +25,11 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.emiage.room.model.DTO.DTOReturn;
-import org.emiage.room.model.DTO.DTOReturnLogin;
+import org.emiage.room.model.dto.DTOReturn;
+import org.emiage.room.model.dto.DTOReturnLogin;
 import org.emiage.room.model.entity.Room;
 import org.emiage.room.model.repository.RoomRepository;
+import org.emiage.room.model.service.ResaService;
 import org.emiage.room.security.jwtfilter.TokenAuthenticated;
 import static org.hibernate.annotations.common.util.impl.LoggerFactory.logger;
 
@@ -48,13 +49,8 @@ public class RoomResource {
     @Inject
     private RoomRepository roomRepository;
     
-    /*@GET   
-    @TokenAuthenticated
-    public Response ping(){
-        return Response
-                .ok("ping Jakarta EE")
-                .build();
-    }*/
+    @Inject 
+    private ResaService resasrv;
     
     @GET
     @Path("{id}")
@@ -80,19 +76,24 @@ public class RoomResource {
     @Produces("application/json")
     public Response create(Room room) throws SystemException {
         logger.log(Level.INFO, "Creating room {0}", room.getName());
+        String message ="la salle de réunion est crée";
         try{
             room.setUserCreate(securityctx.getUserPrincipal().getName());
             room.setUserUpdate(securityctx.getUserPrincipal().getName());
-            roomRepository.create(room);
+            room = roomRepository.create(room);
             return Response
                    .ok()
-                   .entity(new DTOReturn(0, "Salle creer"))
+                   .entity(new DTOReturn(0, message , room))
                    .build();
         }catch (PersistenceException ex){
             logger.log(Level.INFO, "Error creating room {0}", room.getName());
             logger.log(Level.SEVERE, "Exception {0}", ex.toString());
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            message =  ex.getMessage();
         }
+        return Response
+                   .ok()
+                   .entity(new DTOReturn(-1, "La création a échouée  :" + message ))
+                   .build();
     }
 
     @DELETE
@@ -100,23 +101,36 @@ public class RoomResource {
     @TokenAuthenticated
     public Response delete(@PathParam("id") Long id){
         logger.log(Level.INFO, "Deleting room by id {0}", id);
+        String message ="la salle de réunion est supprimée";
         try{
-            roomRepository.delete(id);
-            return Response
+            if (resasrv.findbyRoomId(id).isEmpty())
+            {
+                resasrv.deletefromRoom(id);
+                roomRepository.delete(id);
+                return Response
                    .ok()
-                   .entity(new DTOReturn(0, "Salle supprimer"))
+                   .entity(new DTOReturn(0, message))
                    .build();
+            }
+            else
+            {
+                return Response
+                   .ok()
+                   .entity(new DTOReturn(-2, "La salle possède des reservations à supprimer."))
+                   .build();
+            }
         }catch (IllegalArgumentException e){
             logger.log(Level.INFO, "Error deleting room by id {0}", id);
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            message= e.getMessage();
         }
         catch (SystemException e){
             logger.log(Level.INFO, "Error deleting room by id {0}", id);
-            return Response
-                   .ok()
-                   .entity(new DTOReturn(-1, "Erreur {0}".formatted(e.getMessage())))
-                   .build();
+            message= e.getMessage();
         }
+        return Response
+                   .ok()
+                   .entity(new DTOReturn(-1, "Erreur" + message))
+                   .build();
     }
 
 
@@ -124,28 +138,28 @@ public class RoomResource {
     @Consumes("application/json")
     @Produces("application/json")
     @TokenAuthenticated
-    public Room update(Room room) {
+    public Response update(Room room) {
         logger.log(Level.INFO, "Updating room {0}", room.getName());
+        String message ="la salle de réunion est modifiée";
         try{
             /* Maj de l'utilisateur de création*/
             room.setUserUpdate(securityctx.getUserPrincipal().getName());
-            return roomRepository.update(room);
+            room = roomRepository.update(room);
+            return Response
+                   .ok()
+                   .entity(new DTOReturn(0, message, room))
+                   .build();
         }catch (PersistenceException ex){
             logger.log(Level.INFO, "Error updating room {0}", room.getName());
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        } catch (SecurityException ex) {
+            message = ex.getMessage();
+            
+        } catch (SecurityException | NotSupportedException | SystemException | RollbackException | HeuristicMixedException | HeuristicRollbackException ex) {
             Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NotSupportedException ex) {
-            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SystemException ex) {
-            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (RollbackException ex) {
-            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (HeuristicMixedException ex) {
-            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (HeuristicRollbackException ex) {
-            Logger.getLogger(RoomResource.class.getName()).log(Level.SEVERE, null, ex);
+            message = ex.getMessage();
         }
-        return null;
+        return Response
+                   .ok()
+                   .entity(new DTOReturn(-1,"La salle n'a pas être modifié" + message))
+                   .build();
     }
 }
