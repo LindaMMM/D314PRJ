@@ -51,5 +51,7 @@ public interface ResaService {
     
     public List<Resa> findbyRoomId(Long idroom);
     
+    public boolean deletefromRoom(Long idroom);
+    
     
 }

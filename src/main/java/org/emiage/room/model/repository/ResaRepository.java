@@ -65,12 +65,13 @@ public class ResaRepository {
         return Optional.ofNullable(em.find(Resa.class, id));
     }
 
-     public void deletebyroom(Long id) {
+     public boolean deletebyroom(Long id) {
         logger.log(Level.INFO, "Deleting resa by idRoom {0}", id);
         try {
             utx.begin();
             em.createQuery("DELETE FROM Resa r where r.id_room =: id", Resa.class).setParameter("id", id).executeUpdate();
             utx.commit();
+            return true;
         }
         catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException | SystemException | NotSupportedException ex) {
           Logger.getLogger(ResaRepository.class.getName()).log(Level.SEVERE, null, ex);
@@ -81,7 +82,7 @@ public class ResaRepository {
           }
         
         }
-        
+      return true;  
      }
      
     public boolean delete(Long id) {

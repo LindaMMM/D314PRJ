@@ -92,8 +92,8 @@ public class ResaServiceImpl implements ResaService{
     }
     
      @Override
-    public void deletefromRoom(Long id){
-        resaRepository.deletebyroom(id);        
+    public boolean deletefromRoom(Long id){
+        return resaRepository.deletebyroom(id);        
     }
     
     

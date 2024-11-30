@@ -31,7 +31,7 @@ import org.emiage.room.model.entity.Room;
 import org.emiage.room.model.repository.RoomRepository;
 import org.emiage.room.model.service.ResaService;
 import org.emiage.room.security.jwtfilter.TokenAuthenticated;
-import static org.hibernate.annotations.common.util.impl.LoggerFactory.logger;
+
 
 /**
  *
