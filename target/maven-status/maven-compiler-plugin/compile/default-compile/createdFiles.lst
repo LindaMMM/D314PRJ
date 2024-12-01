@@ -1,7 +1,6 @@
 org/emiage/room/security/repository/UserRepository.class
 org/emiage/room/model/dto/DTOReturnLogin.class
 org/emiage/room/resources/RoomResource.class
-org/emiage/room/configuration/ConfigBean.class
 org/emiage/room/model/service/RoomException.class
 org/emiage/room/model/entity/Room.class
 org/emiage/room/security/jwtfilter/BearerTokenFilter$1.class

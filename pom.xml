@@ -48,7 +48,11 @@
             <artifactId>jwks-rsa</artifactId>
             <version>0.22.1</version>
         </dependency>
-     
+     <dependency>
+    <groupId>org.hibernate.orm</groupId>
+    <artifactId>hibernate-ant</artifactId>
+    <version>6.4.2.Final</version>
+     </dependency>
       
     </dependencies>
     
