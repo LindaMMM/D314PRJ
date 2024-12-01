@@ -8,4 +8,4 @@
  */
 
 
-
+insert into USER_APP(LOGIN, PASSWORD) values ("admin", "admin")
