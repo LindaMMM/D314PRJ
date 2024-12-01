@@ -69,7 +69,7 @@ public class ResaRepository {
         logger.log(Level.INFO, "Deleting resa by idRoom {0}", id);
         try {
             utx.begin();
-            em.createQuery("DELETE FROM Resa r where r.id_room =: id", Resa.class).setParameter("id", id).executeUpdate();
+            em.createQuery("DELETE FROM Resa r where r.id_room = :id", Resa.class).setParameter("id", id).executeUpdate();
             utx.commit();
             return true;
         }
@@ -91,8 +91,9 @@ public class ResaRepository {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid resa Id:" + id));
         try {
             utx.begin();
-            em.remove(resa);
+             em.createQuery("DELETE FROM Resa r where r.id_resa = :id", Resa.class).setParameter("id", id).executeUpdate();
             utx.commit();
+            return true;
         } catch (RollbackException | HeuristicMixedException | HeuristicRollbackException | SecurityException | IllegalStateException | SystemException | NotSupportedException ex) {
             Logger.getLogger(ResaRepository.class.getName()).log(Level.SEVERE, null, ex);
             try {
@@ -100,9 +101,8 @@ public class ResaRepository {
             } catch (IllegalStateException | SecurityException | SystemException ex1) {
                 Logger.getLogger(ResaRepository.class.getName()).log(Level.SEVERE, null, ex1);
             }
-            return false;
         }
-        return true;
+        return false;
         
     }
 

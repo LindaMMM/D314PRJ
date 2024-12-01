@@ -80,6 +80,8 @@ public class ResaResource {
 
     @DELETE
     @Path("{id}")
+    @Consumes("application/json")
+    @Produces("application/json")
     @TokenAuthenticated
     public Response delete(@PathParam("id") Long id) {
         logger.log(Level.INFO, "Deleting resa by id {0}", id);

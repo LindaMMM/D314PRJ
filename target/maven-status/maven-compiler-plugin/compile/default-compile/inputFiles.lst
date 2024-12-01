@@ -6,7 +6,6 @@
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/configuration/RoomConfig.java
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/model/entity/Resa.java
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/model/service/RoomException.java
-/home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/configuration/RequestBean.java
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/security/entity/Role.java
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/security/repository/UserRepository.java
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/security/entity/User.java
@@ -20,7 +19,6 @@
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/model/dto/DTOReturnLogin.java
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/model/service/ResaService.java
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/model/service/ResaServiceImpl.java
-/home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/configuration/ConfigBean.java
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/resources/AuthResource.java
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/model/entity/Room.java
 /home/linda/Projets/D314-services/room/src/main/java/org/emiage/room/security/entity/UserJWT.java

@@ -3,7 +3,7 @@
   <!-- Define Persistence Unit -->
   <persistence-unit name="rooms_jpa" transaction-type="JTA">
        
-    <class>org.emiage.room.configuration.RequestBean</class>
+    
     <class>org.emiage.room.model.entity.Room</class>
     <class>org.emiage.room.model.entity.Audit</class>
     <class>org.emiage.room.model.entity.Resa</class>
@@ -11,11 +11,13 @@
     <class>org.emiage.room.security.entity.User</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties>
-      <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
+        
+      <!--property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/-->
       <property name="jakarta.persistence.jdbc.driver" value="org.sqlite.JDBC"/>
-      <property name="jakarta.persistence.jdbc.url" value="jdbc:sqlite:rooms.db"/>
+      <property name="jakarta.persistence.jdbc.url" value="jdbc:sqlite://home/linda/dbscripts/DataRooms.db"/>
       <property name="hibernate.show_sql" value="true"/>
-     
+      <property name="javax.persistence.jdbc.user" value="" />
+      <property name="javax.persistence.jdbc.password" value="" />
       <!--property name="jakarta.persistence.schema-generation.create-script-source" value="main/resources/tablecreate.sql"/-->
       <!--property name="jakarta.persistence.sql-load-script-source" value="main/resources/loadtable.sql"/-->
     </properties>
