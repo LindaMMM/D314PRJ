@@ -1,0 +1,65 @@
+/* 
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Other/SQLTemplate.sql to edit this template
+ */
+/**
+ * Author:  linda
+ * Created: 4 nov. 2024
+ */
+/***********************************/
+/*Supression des tables existantes */
+/***********************************/
+DROP TABLE  IF EXISTS "RESERVATION";
+DROP TABLE  IF EXISTS  "ROOM";
+DROP TABLE  IF EXISTS  "USER_ROLE";
+DROP TABLE  IF EXISTS  "USER_APP";
+DROP TABLE  IF EXISTS  "ROLE_APP";
+
+/***********************************/
+/*      Création des tables        */
+/***********************************/
+CREATE TABLE  IF NOT EXISTS  "ROOM" (
+	"ID_ROOM"	INTEGER NOT NULL UNIQUE,
+	"NAME"	TEXT NOT NULL UNIQUE,
+	"CAPACITY"	INTEGER NOT NULL,
+	"COMMENT"	TEXT NOT NULL,
+        "USER_CREATE"	TEXT NOT NULL,
+        "DAT_CRT"       TEXT,
+        "USER_UPDATE"	TEXT,
+        "DAT_UPD"	TEXT,
+	PRIMARY KEY("ID_ROOM" AUTOINCREMENT)
+);
+
+CREATE TABLE IF NOT EXISTS  "USER_APP" (
+	"ID_USER"	INTEGER NOT NULL UNIQUE,
+	"LOGIN"	TEXT NOT NULL UNIQUE,
+	"PASSWORD"	TEXT NOT NULL,
+	PRIMARY KEY("ID_USER" AUTOINCREMENT)
+);
+
+CREATE TABLE IF NOT EXISTS   "USER_ROLE" (
+	"ID_USER"	INTEGER NOT NULL,
+	"ID_ROLE"	INTEGER NOT NULL,
+	PRIMARY KEY("ID_USER","ID_ROLE")
+);
+
+CREATE TABLE IF NOT EXISTS "ROLE_APP" (
+	"ID_ROLE"	INTEGER NOT NULL UNIQUE,
+	"NAME"	TEXT NOT NULL UNIQUE,
+	PRIMARY KEY("ID_ROLE" AUTOINCREMENT)
+);
+
+CREATE TABLE IF NOT EXISTS "RESERVATION" (
+	"ID_RESA"	INTEGER NOT NULL UNIQUE,
+	"SUBJECT"	TEXT,
+	"START_RES"	TEXT NOT NULL,
+	"END_RES"	TEXT NOT NULL,
+        "USER_CREATE"	TEXT NOT NULL,
+        "DAT_CRT"       TEXT,
+        "USER_UPDATE"	TEXT,
+        "DAT_UPD"	TEXT,
+	PRIMARY KEY("ID_RESA" AUTOINCREMENT)
+);
+
+ALTER TABLE RESERVATION ADD COLUMN ID_ROOM INTEGER REFERENCES ROOM(ID_ROOM);
+ALTER TABLE RESERVATION ADD COLUMN ID_USER INTEGER REFERENCES USER(ID_USER);
